@@ -48,6 +48,8 @@ BarWidget {
   property bool showingSetup: false
   property string sshUser: ""
   property string sshHost: ""
+  readonly property int defaultSshPort: 22
+  property string sshPort: ""
   property var apps: []
   property string errorText: ""
   property string statusText: ""
@@ -117,15 +119,25 @@ BarWidget {
       setupErrorText = "Enter both SSH user and host."
       return
     }
+    const portText = portField.text.trim()
+    let port = root.defaultSshPort
+    if (portText !== "") {
+      port = Number(portText)
+      if (!Number.isInteger(port) || port < 1 || port > 65535) {
+        setupErrorText = "Port must be a number between 1 and 65535."
+        return
+      }
+    }
     setupErrorText = ""
     sshUser = user
     sshHost = host
+    sshPort = String(port)
     mkdirProcess.command = ["mkdir", "-p", settingsPath.substring(0, settingsPath.lastIndexOf("/"))]
     mkdirProcess.running = true
   }
 
   function writeSettings() {
-    const payload = { user: sshUser, host: sshHost }
+    const payload = { user: sshUser, host: sshHost, port: Number(sshPort) }
     settingsFile.setText(JSON.stringify(payload, null, 2) + "\n")
     configured = true
     showingSetup = false
@@ -152,6 +164,7 @@ BarWidget {
       "-o", "BatchMode=yes",
       "-o", "ConnectTimeout=5",
       "-o", "StrictHostKeyChecking=accept-new",
+      "-p", sshPort !== "" ? sshPort : String(defaultSshPort),
       sshUser + "@" + sshHost,
       "/usr/local/sbin/autodeployctl", "status", "--json"
     ]
@@ -210,7 +223,7 @@ BarWidget {
     PanelKeyCatcher {
       id: keyCatcher
       anchors.fill: parent
-      blocked: (userField && userField.activeFocus) || (hostField && hostField.activeFocus)
+        blocked: (userField && userField.activeFocus) || (hostField && hostField.activeFocus) || (portField && portField.activeFocus)
       onCloseRequested: root.close()
 
       ColumnLayout {
@@ -234,7 +247,7 @@ BarWidget {
           }
           Text {
             visible: root.configured && root.sshUser !== ""
-            text: root.sshUser + "@" + root.sshHost
+            text: root.sshUser + "@" + root.sshHost + (root.sshPort !== "" && root.sshPort !== String(root.defaultSshPort) ? ":" + root.sshPort : "")
             color: root.dimText
             font.family: Style.font.family
             font.pixelSize: Style.font.caption
@@ -328,6 +341,32 @@ BarWidget {
                 Layout.fillWidth: true
                 text: root.sshHost
                 placeholderText: "e.g. 192.168.254.10"
+                font.family: Style.font.family
+                font.pixelSize: Style.font.body
+                onAccepted: root.saveConnection()
+                Keys.onEscapePressed: root.close()
+              }
+            }
+
+            ColumnLayout {
+              Layout.preferredWidth: Style.space(110)
+              spacing: Style.space(4)
+
+              Text {
+                text: "Port"
+                color: root.dimText
+                font.family: Style.font.family
+                font.pixelSize: Style.font.caption
+                font.bold: true
+              }
+
+              TextField {
+                id: portField
+                Layout.fillWidth: true
+                text: root.sshPort !== "" ? root.sshPort : String(root.defaultSshPort)
+                placeholderText: "22"
+                inputMethodHints: Qt.ImhDigitsOnly
+                validator: IntValidator { bottom: 1; top: 65535 }
                 font.family: Style.font.family
                 font.pixelSize: Style.font.body
                 onAccepted: root.saveConnection()
@@ -631,7 +670,7 @@ BarWidget {
         Text {
           visible: !root.showingSetup
           Layout.fillWidth: true
-          text: "Read-only view • ssh " + (root.sshUser !== "" ? root.sshUser + "@" + root.sshHost : "user@host") + " autodeployctl status --json"
+          text: "Read-only view • ssh -p " + (root.sshPort !== "" ? root.sshPort : String(root.defaultSshPort)) + " " + (root.sshUser !== "" ? root.sshUser + "@" + root.sshHost : "user@host") + " autodeployctl status --json"
           wrapMode: Text.Wrap
           color: root.dimmerText
           font.family: Style.font.family
@@ -656,6 +695,7 @@ BarWidget {
         if (parsed.user && parsed.host) {
           root.sshUser = String(parsed.user)
           root.sshHost = String(parsed.host)
+          root.sshPort = parsed.port !== undefined && Number(parsed.port) !== root.defaultSshPort ? String(parsed.port) : ""
           root.configured = true
         } else {
           root.configured = false
@@ -733,14 +773,16 @@ BarWidget {
         showingSetup: root.showingSetup,
         user: root.sshUser,
         host: root.sshHost,
+        port: root.sshPort !== "" ? Number(root.sshPort) : root.defaultSshPort,
         loading: root.isLoading,
         error: root.errorText,
         apps: root.apps
       })
     }
-    function configure(user: string, host: string): void {
+    function configure(user: string, host: string, port: int): void {
       root.sshUser = user
       root.sshHost = host
+      if (port >= 1 && port <= 65535) root.sshPort = String(port)
       mkdirProcess.command = ["mkdir", "-p", root.settingsPath.substring(0, root.settingsPath.lastIndexOf("/"))]
       mkdirProcess.running = true
     }
