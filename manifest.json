@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "cassian.autodeploy",
+  "name": "Autodeploy",
+  "version": "1.0.0",
+  "author": "cassian",
+  "description": "View autodeployctl app status on a remote host over SSH",
+  "kinds": ["bar-widget"],
+  "entryPoints": {
+    "barWidget": "Widget.qml"
+  },
+  "barWidget": {
+    "displayName": "Autodeploy",
+    "description": "Show autodeployctl service status via SSH",
+    "category": "Info",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}
