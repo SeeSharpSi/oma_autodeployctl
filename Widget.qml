@@ -420,10 +420,10 @@ BarWidget {
             spacing: Style.space(8)
 
             Text {
-              text: "↻"
-              color: root.dimText
+              text: "󰑐"
+              color: root.fg
               font.family: Style.font.family
-              font.pixelSize: Style.font.subtitle
+              font.pixelSize: Style.font.icon
               anchors.verticalCenter: parent.verticalCenter
 
               RotationAnimation on rotation {
