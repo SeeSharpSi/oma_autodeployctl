@@ -225,6 +225,7 @@ BarWidget {
       anchors.fill: parent
         blocked: (userField && userField.activeFocus) || (hostField && hostField.activeFocus) || (portField && portField.activeFocus)
       onCloseRequested: root.close()
+      onTextKey: function(t) { if (t === "r" || t === "R") root.fetchStatus() }
 
       ColumnLayout {
         id: mainColumn
