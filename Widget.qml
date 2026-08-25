@@ -235,7 +235,7 @@ BarWidget {
         // Header
         RowLayout {
           Layout.fillWidth: true
-          spacing: Style.space(8)
+          spacing: Style.space(7)
 
           Text {
             text: "Autodeploy"
@@ -255,27 +255,33 @@ BarWidget {
           }
           Item { Layout.fillWidth: true }
 
-          Button {
+          PanelActionButton {
             visible: root.configured && !root.showingSetup
-            iconText: "↻"
-            iconSpinning: root.isLoading
+            iconText: "󰑐"
+            foreground: root.fg
             tooltipText: "Refresh status"
+            enabled: !root.isLoading
             onClicked: root.fetchStatus()
           }
           PanelActionButton {
             visible: root.configured && !root.showingSetup
-            iconText: "✎"
+            iconText: "󰏫"
+            foreground: root.fg
             tooltipText: "Edit connection"
             onClicked: root.editConnection()
           }
           PanelActionButton {
-            iconText: "✕"
+            iconText: "󰅙"
+            foreground: root.fg
             tooltipText: "Close"
             onClicked: root.close()
           }
         }
 
-        PanelSeparator {}
+        PanelSeparator {
+          Layout.fillWidth: true
+          foreground: root.fg
+        }
 
         // ---- Setup form (first click / edit) ----
         ColumnLayout {
