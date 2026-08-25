@@ -270,12 +270,6 @@ BarWidget {
             tooltipText: "Edit connection"
             onClicked: root.editConnection()
           }
-          PanelActionButton {
-            iconText: "󰅙"
-            foreground: root.fg
-            tooltipText: "Close"
-            onClicked: root.close()
-          }
         }
 
         PanelSeparator {
